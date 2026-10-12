@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAYRA AI - Your Personal Assistant</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@500;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Noto Nastaliq Urdu',system-ui}
+body{background:#080808;color:#fff;min-height:100vh;display:flex;justify-content:center;padding:15px}
+.app{width:100%;max-width:500px;background:#151515;border:1px solid #2a2a2a;border-radius:28px;display:flex;flex-direction:column;height:95vh;overflow:hidden}
+.top{padding:20px;background:linear-gradient(90deg,#ff2a6d,#ff7a45);display:flex;justify-content:space-between;align-items:center}
+.top h1{font-size:28px;font-weight:700}
+.chat{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:85%;padding:14px 16px;border-radius:18px;font-size:17px;line-height:1.7}
+.user{align-self:flex-end;background:#fff;color:#000;border-radius:18px 18px 0 18px}
+.ai{align-self:flex-start;background:#222;border:1px solid #333;border-radius:18px 18px 18px 0}
+.input-area{padding:12px;background:#0f0f0f;border-top:1px solid #222;display:flex;gap:10px;align-items:center}
+.input-area input{flex:1;background:#1e1e1e;border:1px solid #333;padding:14px 16px;border-radius:25px;color:#fff;outline:none;font-size:16px}
+.input-area button{width:50px;height:50px;border-radius:50%;border:none;cursor:pointer;font-size:20px}
+#sendBtn{background:#ff2a6d;color:#fff}
+#micBtn{background:#fff;color:#000}
+.status{text-align:center;font-size:12px;color:#666;padding:6px}
+.orb{width:40px;height:40px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:beat 1.2s infinite}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <h1>مائرہ AI 🤖</h1>
+    <div class="orb">💖</div>
+  </div>
+  <div class="status" id="status">آن لائن - فل ایکٹیو</div>
+  <div class="chat" id="chat">
+    <div class="msg ai">السلام علیکم! میں مائرہ ہوں۔ بتاؤ کیا حال ہے؟ جو بھی پوچھنا ہے پوچھو، میں جواب دوں گی اور بول کر بھی بتاؤں گی۔</div>
+  </div>
+  <div class="input-area">
+    <button id="micBtn" onclick="startMic()">🎙️</button>
+    <input type="text" id="input" placeholder="مائرہ سے کچھ پوچھو..." onkeypress="if(event.key==='Enter')send()">
+    <button id="sendBtn" onclick="send()">➤</button>
+  </div>
+</div>
+
+<script>
+const chat = document.getElementById('chat');
+const input = document.getElementById('input');
+let voices=[];
+
+function loadVoices(){ voices = speechSynthesis.getVoices(); }
+speechSynthesis.onvoiceschanged = loadVoices; loadVoices();
+
+function speak(text){
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  const femaleVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Google') || v.lang.includes('ur') || v.lang.includes('en'));
+  if(femaleVoice) u.voice = femaleVoice;
+  u.lang = 'ur-PK'; u.rate = 0.95; u.pitch = 1.2;
+  speechSynthesis.speak(u);
+}
+
+function addMsg(text, cls){
+  const d = document.createElement('div');
+  d.className = 'msg '+cls; d.innerText = text;
+  chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
+  if(cls==='ai') speak(text);
+}
+
+function getMayraReply(q){
+  q = q.toLowerCase();
+  if(q.includes('نام') || q.includes('کون ہو')) return 'میرا نام مائرہ ہے، تمہاری اپنی AI دوست۔ میں تمہارے لیے ہی بنی ہوں۔';
+  if(q.includes('کیسی ہو') || q.includes('حال')) return 'میں بالکل ٹھیک ہوں، تم سناؤ؟ تمہاری آواز سن کر اچھا لگا۔';
+  if(q.includes('پیار') || q.includes('love')) return 'ہائے! شرما گئی میں تو۔ تم بھی نا بہت شرارتی ہو۔';
+  if(q.includes('گیم') || q.includes('بور')) return 'بور ہو رہے ہو؟ چلو کوئی گپ شپ کرتے ہیں یا میں تمہیں کوئی کہانی سناؤں؟';
+  if(q.includes('کیا کر سکتی ہو')) return 'میں تم سے بات کر سکتی ہوں، تمہارے سوالوں کا جواب دے سکتی ہوں، لطیفے سنا سکتی ہوں، اور تم جو لکھو گے وہ بول کر بھی سنا سکتی ہوں۔';
+  const replies = [
+    'واہ! یہ تو بہت اچھا سوال ہے۔ ' + q + ' کے بارے میں میرا خیال ہے کہ یہ بہت دلچسپ ہے۔',
+    'ہاں میں سمجھ گئی، تم نے کہا: ' + q + '۔ اس پر میں مزید سوچ کر بتاتی ہوں۔',
+    'بالکل! میں تمہاری بات سے اتفاق کرتی ہوں۔ اور بتاؤ؟',
+    'تم بہت ذہین ہو جو یہ پوچھا۔ دیکھو اس کا جواب یہ ہے کہ زندگی میں سب کچھ ممکن ہے اگر دل سے چاہو۔'
+  ];
+  return replies[Math.floor(Math.random()*replies.length)];
+}
+
+function send(){
+  const text = input.value.trim(); if(!text) return;
+  addMsg(text, 'user'); input.value='';
+  document.getElementById('status').innerText = 'مائرہ ٹائپ کر رہی ہے...';
+  setTimeout(()=>{
+    const reply = getMayraReply(text);
+    addMsg(reply, 'ai');
+    document.getElementById('status').innerText = 'آن لائن - فل ایکٹیو';
+  }, 800);
+}
+
+function startMic(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){ alert('آپ کا براؤزر مائک سپورٹ نہیں کرتا، کروم استعمال کریں'); return; }
+  const rec = new SpeechRecognition();
+  rec.lang = 'ur-PK'; rec.start();
+  document.getElementById('status').innerText = 'سن رہی ہوں... بولو';
+  rec.onresult = (e)=>{
+    input.value = e.results[0][0].transcript;
+    send();
+  };
+  rec.onend = ()=>{ document.getElementById('status').innerText = 'آن لائن - فل ایکٹیو'; }
+}
+</script>
+</body>
+</html>
